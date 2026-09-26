@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { id, isoDate, addDays } from '../utils.js';
+import { recalculateAll } from '../services/predictionService.js';
+const root = path.dirname(fileURLToPath(import.meta.url));
+const file = path.join(root, '..', 'data', 'stocksense.json');
+const names = [['Reinforced Steel Rods 12mm','STL-12','Raw Materials','kg',77],['Portland Cement Grade 53','CEM-53','Raw Materials','bags',32],['Industrial Copper Wire 2.5mm','CU-25','Electrical','meters',180],['PVC Conduit Pipes','PVC-20','Plumbing','meters',46],['Safety Helmets','PPE-001','Safety','units',24],['Welding Electrodes','WLD-001','Consumables','boxes',18],['Aluminium Sheets 2mm','AL-2','Raw Materials','sheets',63],['Hydraulic Oil 20L','OIL-20','Maintenance','cans',12],['Anchor Bolts M16','BLT-M16','Hardware','units',95],['Industrial Gloves','GLV-001','Safety','pairs',40]];
+const products = names.map(([name, sku, category, unit, stock], i) => ({ id: `prod-${i+1}`, name, sku, category, unit, current_stock: stock, predicted_stockout_date: isoDate(addDays(new Date(), i < 3 ? 3 + i : 20 + i)), suggested_reorder_qty: 25 }));
+const ledger = [];
+for (const p of products) for (let d = 7; d >= 1; d--) ledger.push({ id: id('led'), product_id: p.id, location_id: 'Main Warehouse', change_qty: d === 7 && p.id === 'prod-1' ? 100 : -((p.id.charCodeAt(5) + d) % 4 + 1), type: d === 7 && p.id === 'prod-1' ? 'receipt' : 'delivery', timestamp: new Date(Date.now() - d * 86400000).toISOString(), reference_id: `${d === 7 ? 'REC' : 'DEL'}-SEED-${d}` });
+ledger.push({ id: id('led'), product_id: 'prod-1', location_id: 'Main Warehouse', change_qty: -3, type: 'adjustment', timestamp: new Date().toISOString(), reference_id: 'ADJ-SEED-001' });
+const steel = products[0];
+const store = { products: recalculateAll(products, ledger), ledger, receipts: [{ id: 'rec-seed', reference_id: 'REC-SEED-001', date: isoDate(new Date()), supplier: 'Metro Steel Suppliers', status: 'Done', total_qty: 100, items: [{ product_id: steel.id, product_name: steel.name, qty: 100, unit: steel.unit }] }], deliveries: [], transfers: [{ id: 'trf-seed', reference_id: 'TRF-SEED-001', date: isoDate(new Date()), product_id: steel.id, product_name: steel.name, qty: 100, unit: steel.unit, from_location: 'Main Warehouse', to_location: 'Production Floor', status: 'Done' }], adjustments: [{ id: 'adj-seed', reference_id: 'ADJ-SEED-001', date: isoDate(new Date()), product_id: steel.id, product_name: steel.name, location: 'Production Floor', system_qty: 80, counted_qty: 77, delta: -3, reason: 'Damaged items', status: 'Done' }] };
+fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(store, null, 2)); console.log(`Seeded ${products.length} products into ${file}`);

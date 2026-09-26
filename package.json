@@ -1,0 +1,14 @@
+{
+  "name": "stocksense",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "install:frontend": "npm install --prefix frontend",
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "dev:server": "node --watch backend/server.js",
+    "start": "node backend/server.js",
+    "seed": "node backend/scripts/seed.js"
+  }
+}
