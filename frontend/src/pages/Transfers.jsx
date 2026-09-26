@@ -5,7 +5,9 @@ import {
   ArrowRight,
   Building2,
   Calendar,
-  Package
+  Package,
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { LOCATIONS } from '../mockData/transfers';
@@ -13,6 +15,7 @@ import { Modal } from '../components/common/Modal';
 import { Badge } from '../components/common/Badge';
 import { EmptyState } from '../components/common/EmptyState';
 import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
+import { exportToExcel, exportToCsv, formatTransfersForExport } from '../utils/exportUtils';
 
 export const Transfers = () => {
   const { transfers, products, addTransfer, loading, showToast } = useInventory();
@@ -75,13 +78,41 @@ export const Transfers = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenModal}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Internal Transfer</span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => {
+              exportToExcel(formatTransfersForExport(transfers), `stocksense_transfers_${new Date().toISOString().split('T')[0]}`, 'Transfers');
+              showToast('Exported warehouse transfers to Excel (.xlsx)', 'success');
+            }}
+            disabled={transfers.length === 0}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition-all disabled:opacity-50"
+            title="Export transfers to Excel"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Export Excel</span>
+          </button>
+
+          <button
+            onClick={() => {
+              exportToCsv(formatTransfersForExport(transfers), `stocksense_transfers_${new Date().toISOString().split('T')[0]}`);
+              showToast('Exported warehouse transfers to CSV (.csv)', 'success');
+            }}
+            disabled={transfers.length === 0}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition-all disabled:opacity-50"
+            title="Export transfers to CSV"
+          >
+            <FileText className="w-3.5 h-3.5 text-slate-500" />
+            <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={handleOpenModal}
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Internal Transfer</span>
+          </button>
+        </div>
       </div>
 
       {/* Transfers Table */}

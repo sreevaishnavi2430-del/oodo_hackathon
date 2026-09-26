@@ -1,7 +1,58 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-async function request(path, options = {}) { const response = await fetch(`${API_BASE}${path}`, { headers: { 'Content-Type': 'application/json' }, ...options }); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || `Request failed (${response.status})`); return body; }
+
+async function request(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(body.error || `Request failed (${response.status})`);
+  }
+  return body;
+}
+
 const json = (method, path, data) => request(path, { method, body: JSON.stringify(data) });
-export const getProducts = () => request('/products'); export const getProductById = (id) => request(`/products/${id}`); export const createProduct = (data) => json('POST', '/products', data); export const updateProduct = (id, data) => json('PUT', `/products/${id}`, data); export const deleteProduct = (id) => request(`/products/${id}`, { method: 'DELETE' });
-export const getLedgerEntries = (productId = null, filters = {}) => { const q = new URLSearchParams(); if (productId) q.set('productId', productId); if (filters.type && filters.type !== 'all') q.set('type', filters.type); return request(`/ledger?${q}`); }; export const createLedgerEntry = (data) => json('POST', '/ledger', data);
-export const getReceipts = () => request('/receipts'); export const createReceipt = (data) => json('POST', '/receipts', data); export const getDeliveries = () => request('/deliveries'); export const createDelivery = (data) => json('POST', '/deliveries', data); export const getTransfers = () => request('/transfers'); export const createTransfer = (data) => json('POST', '/transfers', data); export const getAdjustments = () => request('/adjustments'); export const createAdjustment = (data) => json('POST', '/adjustments', data);
-export const getLocations = async () => ['Main Warehouse', 'Production Floor', 'Warehouse 2']; export const getSuppliers = async () => []; export const getCustomers = async () => [];
+
+// Products CRUD
+export const getProducts = () => request('/products');
+export const getProductById = (id) => request(`/products/${id}`);
+export const createProduct = (data) => json('POST', '/products', data);
+export const updateProduct = (id, data) => json('PUT', `/products/${id}`, data);
+export const deleteProduct = (id) => request(`/products/${id}`, { method: 'DELETE' });
+
+// Stock Ledger
+export const getLedgerEntries = (productId = null, filters = {}) => {
+  const q = new URLSearchParams();
+  if (productId) q.set('productId', productId);
+  if (filters.type && filters.type !== 'all') q.set('type', filters.type);
+  return request(`/ledger?${q}`);
+};
+export const createLedgerEntry = (data) => json('POST', '/ledger', data);
+
+// Operations
+export const getReceipts = () => request('/receipts');
+export const createReceipt = (data) => json('POST', '/receipts', data);
+export const getDeliveries = () => request('/deliveries');
+export const createDelivery = (data) => json('POST', '/deliveries', data);
+export const getTransfers = () => request('/transfers');
+export const createTransfer = (data) => json('POST', '/transfers', data);
+export const getAdjustments = () => request('/adjustments');
+export const createAdjustment = (data) => json('POST', '/adjustments', data);
+
+// Bulk Import & Restore
+export const importProductsApi = (products, replaceExisting = false) =>
+  json('POST', '/import/products', { products, replaceExisting });
+
+export const importReceiptsApi = (receipts) =>
+  json('POST', '/import/receipts', { receipts });
+
+export const getSystemBackup = () => request('/backup');
+export const restoreSystemBackup = (data) => json('POST', '/restore', data);
+export const resetDemoDataApi = () => json('POST', '/reset-demo', {});
+
+export const checkApiHealth = () => request('/health');
+
+export const getLocations = async () => ['Main Warehouse', 'Production Floor', 'Warehouse 2'];
+export const getSuppliers = async () => [];
+export const getCustomers = async () => [];

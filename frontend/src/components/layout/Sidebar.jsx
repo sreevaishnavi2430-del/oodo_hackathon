@@ -8,6 +8,7 @@ import {
   ArrowLeftRight,
   SlidersHorizontal,
   History,
+  Database,
   X,
   Sparkles,
   AlertTriangle
@@ -15,7 +16,7 @@ import {
 import { useInventory } from '../../context/InventoryContext';
 
 export const Sidebar = ({ isOpen, onClose }) => {
-  const { atRiskProducts } = useInventory();
+  const { atRiskProducts, isBackendOnline } = useInventory();
 
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -25,6 +26,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
     { label: 'Transfers', path: '/transfers', icon: ArrowLeftRight },
     { label: 'Adjustments', path: '/adjustments', icon: SlidersHorizontal },
     { label: 'Stock Ledger', path: '/ledger', icon: History },
+    { label: 'Data & Imports Hub', path: '/data-hub', icon: Database, highlight: true },
   ];
 
   return (
@@ -92,23 +94,31 @@ export const Sidebar = ({ isOpen, onClose }) => {
                       {item.badge}
                     </span>
                   )}
+                  {item.highlight && !item.badge && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700">
+                      Import/Export
+                    </span>
+                  )}
                 </NavLink>
               );
             })}
           </nav>
 
-          {/* Bottom Card: AI Differentiator Highlights */}
+          {/* Bottom Card: Engine & Status */}
           <div className="rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50/70 to-slate-50 p-3.5 text-xs">
             <div className="flex items-center gap-2 mb-1.5 text-indigo-700 font-bold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Predictive IMS Model</span>
+              <span>StockSense AI Engine</span>
             </div>
             <p className="text-[11px] text-slate-500 leading-relaxed">
-              Real-time consumption telemetry projects stockout dates using linear regression.
+              Consumption velocities update dynamically upon receipt and catalog ingestion.
             </p>
             <div className="mt-2.5 pt-2 border-t border-indigo-100/70 flex items-center justify-between text-[10px] font-semibold text-slate-600">
-              <span>Status: Active</span>
-              <span className="text-emerald-600 font-bold">● Live Sync</span>
+              <span>Mode: {isBackendOnline ? 'Express API' : 'Resilient Local'}</span>
+              <span className="text-emerald-600 font-bold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Active
+              </span>
             </div>
           </div>
         </div>

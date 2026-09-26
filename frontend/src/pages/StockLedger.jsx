@@ -15,6 +15,7 @@ import { useInventory } from '../context/InventoryContext';
 import { Badge } from '../components/common/Badge';
 import { EmptyState } from '../components/common/EmptyState';
 import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
+import { exportToExcel, formatLedgerForExport } from '../utils/exportUtils';
 
 export const StockLedger = () => {
   const { ledger, products, loading, showToast } = useInventory();
@@ -76,6 +77,12 @@ export const StockLedger = () => {
     showToast("Stock Ledger exported successfully to CSV", "success");
   };
 
+  const handleExportExcel = () => {
+    if (filteredEntries.length === 0) return;
+    exportToExcel(formatLedgerForExport(filteredEntries, productsMap), `stocksense_ledger_${new Date().toISOString().split('T')[0]}`, 'Stock Ledger');
+    showToast('Stock Ledger exported successfully to Excel', 'success');
+  };
+
   if (loading) {
     return <LoadingSkeleton rows={10} />;
   }
@@ -94,14 +101,10 @@ export const StockLedger = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleExportCSV}
-          disabled={filteredEntries.length === 0}
-          className="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl shadow-2xs transition-all"
-        >
-          <Download className="w-3.5 h-3.5" />
-          <span>Export Audit Log (CSV)</span>
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleExportExcel} disabled={filteredEntries.length === 0} className="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-2xs transition-all"><Download className="w-3.5 h-3.5" /><span>Excel</span></button>
+          <button onClick={handleExportCSV} disabled={filteredEntries.length === 0} className="inline-flex items-center justify-center gap-2 px-3.5 py-2 bg-white hover:bg-slate-50 disabled:opacity-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl shadow-2xs transition-all"><Download className="w-3.5 h-3.5" /><span>CSV</span></button>
+        </div>
       </div>
 
       {/* Filter and Query Controls */}

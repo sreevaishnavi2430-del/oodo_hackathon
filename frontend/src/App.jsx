@@ -14,6 +14,7 @@ import { Deliveries } from './pages/Deliveries';
 import { Transfers } from './pages/Transfers';
 import { Adjustments } from './pages/Adjustments';
 import { StockLedger } from './pages/StockLedger';
+import { DataHub } from './pages/DataHub';
 
 // Protected Route Wrapper
 const ProtectedLayout = () => {
@@ -34,6 +35,7 @@ const ProtectedLayout = () => {
         <Route path="/transfers" element={<Transfers />} />
         <Route path="/adjustments" element={<Adjustments />} />
         <Route path="/ledger" element={<StockLedger />} />
+        <Route path="/data-hub" element={<DataHub />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

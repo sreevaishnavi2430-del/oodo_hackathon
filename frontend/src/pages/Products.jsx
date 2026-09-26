@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   Package,
   Plus,
@@ -9,16 +9,21 @@ import {
   Trash2,
   AlertTriangle,
   ArrowRight,
-  TrendingDown
+  TrendingDown,
+  FileSpreadsheet,
+  FileText,
+  UploadCloud,
+  Database
 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { Modal } from '../components/common/Modal';
 import { Badge } from '../components/common/Badge';
 import { EmptyState } from '../components/common/EmptyState';
 import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
+import { exportToExcel, exportToCsv, formatProductsForExport } from '../utils/exportUtils';
 
 export const Products = () => {
-  const { products, addProduct, editProduct, removeProduct, loading } = useInventory();
+  const { products, atRiskProducts, addProduct, editProduct, removeProduct, loading, showToast } = useInventory();
   const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
@@ -128,13 +133,51 @@ export const Products = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenAdd}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-sm shadow-indigo-200 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Product</span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => {
+              const atRiskSet = new Set((atRiskProducts || []).map((p) => p.id));
+              exportToExcel(formatProductsForExport(filteredProducts, atRiskSet), `stocksense_catalog_${new Date().toISOString().split('T')[0]}`, 'Catalog');
+              showToast('Exported catalog to Excel (.xlsx)', 'success');
+            }}
+            disabled={filteredProducts.length === 0}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition-all disabled:opacity-50"
+            title="Export products to Excel"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Export Excel</span>
+          </button>
+
+          <button
+            onClick={() => {
+              const atRiskSet = new Set((atRiskProducts || []).map((p) => p.id));
+              exportToCsv(formatProductsForExport(filteredProducts, atRiskSet), `stocksense_catalog_${new Date().toISOString().split('T')[0]}`);
+              showToast('Exported catalog to CSV (.csv)', 'success');
+            }}
+            disabled={filteredProducts.length === 0}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition-all disabled:opacity-50"
+            title="Export products to CSV"
+          >
+            <FileText className="w-3.5 h-3.5 text-slate-500" />
+            <span>Export CSV</span>
+          </button>
+
+          <Link
+            to="/data-hub"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold rounded-xl shadow-2xs transition-all"
+          >
+            <UploadCloud className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Import Dataset</span>
+          </Link>
+
+          <button
+            onClick={handleOpenAdd}
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-xs shadow-indigo-200 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Product</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter & Search Bar */}

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ArrowDownLeft,
   Plus,
@@ -7,7 +8,10 @@ import {
   Calendar,
   Building2,
   Package,
-  Boxes
+  Boxes,
+  FileSpreadsheet,
+  FileText,
+  UploadCloud
 } from 'lucide-react';
 import { useInventory } from '../context/InventoryContext';
 import { SUPPLIERS } from '../mockData/receipts';
@@ -16,9 +20,10 @@ import { Modal } from '../components/common/Modal';
 import { Badge } from '../components/common/Badge';
 import { EmptyState } from '../components/common/EmptyState';
 import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
+import { exportToExcel, exportToCsv, formatReceiptsForExport } from '../utils/exportUtils';
 
 export const Receipts = () => {
-  const { receipts, products, addReceipt, loading } = useInventory();
+  const { receipts, products, addReceipt, loading, showToast } = useInventory();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
@@ -95,13 +100,49 @@ export const Receipts = () => {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenModal}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Inbound Receipt</span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => {
+              exportToExcel(formatReceiptsForExport(receipts), `stocksense_receipts_${new Date().toISOString().split('T')[0]}`, 'Receipts');
+              showToast('Exported inbound receipts to Excel (.xlsx)', 'success');
+            }}
+            disabled={receipts.length === 0}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition-all disabled:opacity-50"
+            title="Export receipts to Excel"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Export Excel</span>
+          </button>
+
+          <button
+            onClick={() => {
+              exportToCsv(formatReceiptsForExport(receipts), `stocksense_receipts_${new Date().toISOString().split('T')[0]}`);
+              showToast('Exported inbound receipts to CSV (.csv)', 'success');
+            }}
+            disabled={receipts.length === 0}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition-all disabled:opacity-50"
+            title="Export receipts to CSV"
+          >
+            <FileText className="w-3.5 h-3.5 text-slate-500" />
+            <span>Export CSV</span>
+          </button>
+
+          <Link
+            to="/data-hub"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold rounded-xl shadow-2xs transition-all"
+          >
+            <UploadCloud className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Import Receipt File</span>
+          </Link>
+
+          <button
+            onClick={handleOpenModal}
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Inbound Receipt</span>
+          </button>
+        </div>
       </div>
 
       {/* Receipts Table */}
